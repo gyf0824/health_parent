@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.UserDao">
+    <!--新增-->
+    <insert id="add" parameterType="com.itheima.pojo.User">
+        insert into
+        t_user(birthday,gander,username,password,remark,station,telephone)
+        values
+        (#{birthday},#{gander},#{username},#{password},#{remark},#{station},#{telephone})
+    </insert>
+    <!--模糊查询-->
+    <select id="selectByCondition" parameterType="String" resultType="com.itheima.pojo.User">
+        select * from t_user
+        <if test="value != null and value.length > 0">
+            where username like "%"#{value}"%" or telephone like "%"#{value}"%"
+        </if>
+    </select>
+
+    <!--根据用户ID统计数据量-->
+    <select id="findCountByUserId" parameterType="int" resultType="long">
+        select count(*) from t_user_role where user_id = #{user_id}
+    </select>
+
+    <!--根据检用户id删除检查项-->
+    <delete id="deleteById" parameterType="int">
+        delete from t_user where id = #{id}
+    </delete>
+
+       <!--根据用户id修改用户-->
+    <update id="edit" parameterType="com.itheima.pojo.User">
+        update t_user
+        <set>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="gander != null">
+                gander = #{gander},
+            </if>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="station != null">
+                station = #{station},
+            </if>
+            <if test="telephone != null">
+                telephone = #{telephone},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--根据用户id查询用户-->
+    <select id="findById" parameterType="int" resultType="com.itheima.pojo.User">
+        select * from t_user where id = #{id}
+    </select>
+    <select id="findAll" resultType="com.itheima.pojo.User">
+        select * from t_user
+    </select>
+    <!--根据用户ID清理关联的角色信息，操作的表t_user_role-->
+    <delete id="deleteAssocication" parameterType="int">
+         delete from t_user_role where user_id = #{user_id}
+    </delete>
+
+    <!--根据用户ID查询关联的角色-->
+    <select id="findRoleById" parameterType="int" resultType="com.itheima.pojo.User">
+        select * from t_user
+        where id
+  	    in (select role_id from t_user_role where role_id=#{id})
+    </select>
+</mapper>

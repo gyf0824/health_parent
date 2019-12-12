@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.SetmealDao">
+    <resultMap id="baseResultMap" type="com.itheima.pojo.Setmeal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="price" property="price"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <result column="img" property="img"/>
+    </resultMap>
+
+    <resultMap id="findByIdResultMap" type="com.itheima.pojo.Setmeal" extends="baseResultMap">
+        <!--多对多映射-->
+        <collection
+                property="checkGroups"
+                ofType="com.itheima.pojo.CheckGroup"
+                select="com.itheima.dao.CheckGroupDao.findCheckGroupById"
+                column="id"
+        >
+        </collection>
+    </resultMap>
+
+    <!--根据条件进行模糊查询-->
+    <select id="selectByCondition" parameterType="string" resultType="com.itheima.pojo.Setmeal">
+        select * from t_setmeal
+        <if test="value != null and value != ' ' and value.length > 0 ">
+            where code like "%"#{value}"%" or name like "%"#{value}"%" or helpCode like "%"#{value}"%"
+        </if>
+    </select>
+
+    <insert id="add" parameterType="com.itheima.pojo.Setmeal">
+        <selectKey resultType="int" order="AFTER" keyProperty="id">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_setmeal(code,name,sex,age,helpCode,price,remark,attention,img)
+        values
+        (#{code},#{name},#{sex},#{age},#{helpCode},#{price},#{remark},#{attention},#{img})
+    </insert>
+    <!--绑定套餐和检查组多对多关系-->
+    <insert id="setSetmealAndCheckGroup" parameterType="map">
+        insert into t_setmeal_checkgroup(setmeal_id,checkgroup_id)
+        values
+        (#{setmeal_id},#{checkgroup_id})
+    </insert>
+    <!--根据套餐ID统计数据量-->
+    <select id="findCountBySetmealId" resultType="long" parameterType="int">
+        select count(*) from t_setmeal_checkgroup where setmeal_id = #{setmeal_id}
+    </select>
+    <!--根据套餐ID清理关联的检查组信息，操作的表t_setmeal_checkgroup-->
+    <delete id="deleteAssocication" parameterType="int">
+        delete from t_setmeal_checkgroup where setmeal_id = #{setmeal_id}
+    </delete>
+    <delete id="deleteById" parameterType="int">
+        delete from t_setmeal where id = #{id}
+    </delete>
+    <update id="edit" parameterType="com.itheima.pojo.Setmeal">
+        update t_setmeal
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="code != null">
+                code = #{code},
+            </if>
+            <if test="helpCode != null">
+                helpCode = #{helpCode},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="age != age">
+                age = #{age},
+            </if>
+            <if test="price != price">
+                price = #{price},
+            </if>
+            <if test="remark != remark">
+                remark = #{remark},
+            </if>
+            <if test="attention != null">
+                attention = #{attention},
+            </if>
+            <if test="img != null">
+                img = #{img}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <select id="findAll" resultType="com.itheima.pojo.Setmeal" >
+        select * from t_setmeal
+    </select>
+    <select id="findCheckGroupIdsBySetmealId" resultType="int" parameterType="int">
+        select checkgroup_id from t_setmeal_checkgroup where setmeal_id = #{setmeal_id}
+    </select>
+    <select id="findById" resultMap="findByIdResultMap" parameterType="int">
+         select * from t_setmeal where id = #{id}
+    </select>
+    <select id="findSetmealCount" resultType="map">
+        select s.name,count(o.id) value
+        from
+        t_order o,t_setmeal s
+        where o.setmeal_id = s.id
+        group by
+        s.name
+    </select>
+</mapper>
